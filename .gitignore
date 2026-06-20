@@ -1,0 +1,6 @@
+.vscode/
+__pycache__/
+Clean_Dataset.csv
+Flight-Prediction.ipynb
+*.zip
+*.ipynb
