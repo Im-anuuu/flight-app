@@ -32,12 +32,16 @@ def predict():
 
         # ── Single prediction ─────────────────────────────────────────────────
         df = pd.DataFrame([{
-            'airline': airline, 'source_city': source_city,
-            'destination_city': destination, 'departure_time': departure_time,
-            'stops': stops, 'arrival_time': arrival_time,
-            'class': flight_class, 'duration': duration,
-            'days_left': days_left,
-        }])
+    'airline':          airline,
+    'source_city':      source_city,
+    'departure_time':   departure_time,
+    'stops':            stops,
+    'arrival_time':     arrival_time,
+    'destination_city': destination,
+    'class':            flight_class,
+    'duration':         duration,
+    'days_left':        days_left,
+      }])
         X          = transformer.transform(df)
         prediction = model.predict(X)[0]
         result     = f'₹{int(prediction):,}'
@@ -48,12 +52,16 @@ def predict():
 
         for d in trend_days:
             row = pd.DataFrame([{
-                'airline': airline, 'source_city': source_city,
-                'destination_city': destination, 'departure_time': departure_time,
-                'stops': stops, 'arrival_time': arrival_time,
-                'class': flight_class, 'duration': duration,
-                'days_left': d,
-            }])
+    'airline':          airline,
+    'source_city':      source_city,
+    'departure_time':   departure_time,
+    'stops':            stops,
+    'arrival_time':     arrival_time,
+    'destination_city': destination,
+    'class':            flight_class,
+    'duration':         duration,
+    'days_left':        d,
+}])
             p = model.predict(transformer.transform(row))[0]
             trend_prices.append(int(p))
 
