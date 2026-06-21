@@ -10,6 +10,10 @@ app = Flask(__name__)
 model       = pickle.load(open('flight_model.pkl', 'rb'))
 transformer = pickle.load(open('flight_transformer.pkl', 'rb'))
 
+# Check if model is a Pipeline (includes transformer inside)
+from sklearn.pipeline import Pipeline
+IS_PIPELINE = isinstance(model, Pipeline)
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @app.route('/')
@@ -30,42 +34,34 @@ def predict():
         duration       = float(request.form['duration'])
         days_left      = int(request.form['days_left'])
 
+        def make_df(d_left):
+            return pd.DataFrame([{
+                'airline':          airline,
+                'source_city':      source_city,
+                'destination_city': destination,
+                'departure_time':   departure_time,
+                'stops':            stops,
+                'arrival_time':     arrival_time,
+                'class':            flight_class,
+                'duration':         duration,
+                'days_left':        d_left,
+            }])
+
+        def predict_price(df):
+            # if model is Pipeline, it handles transformation internally
+            if IS_PIPELINE:
+                return model.predict(df)[0]
+            else:
+                return model.predict(transformer.transform(df))[0]
+
         # ── Single prediction ─────────────────────────────────────────────────
-        df = pd.DataFrame([{
-    'airline':          airline,
-    'source_city':      source_city,
-    'departure_time':   departure_time,
-    'stops':            stops,
-    'arrival_time':     arrival_time,
-    'destination_city': destination,
-    'class':            flight_class,
-    'duration':         duration,
-    'days_left':        days_left,
-      }])
-        X          = transformer.transform(df)
-        prediction = model.predict(X)[0]
+        prediction = predict_price(make_df(days_left))
         result     = f'₹{int(prediction):,}'
 
         # ── Price trend: loop days_left 1 → 49 ───────────────────────────────
         trend_days   = list(range(1, 50))
-        trend_prices = []
+        trend_prices = [int(predict_price(make_df(d))) for d in trend_days]
 
-        for d in trend_days:
-            row = pd.DataFrame([{
-    'airline':          airline,
-    'source_city':      source_city,
-    'departure_time':   departure_time,
-    'stops':            stops,
-    'arrival_time':     arrival_time,
-    'destination_city': destination,
-    'class':            flight_class,
-    'duration':         duration,
-    'days_left':        d,
-}])
-            p = model.predict(transformer.transform(row))[0]
-            trend_prices.append(int(p))
-
-        # Mark the user's chosen day on the chart
         chosen_day   = days_left
         chosen_price = int(prediction)
 
